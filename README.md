@@ -2,7 +2,8 @@
 
 This repository contains an integration that provides an action for rendering
 bitmap images or PDF documents.  It is useful standalone or in combination with
-[IPP printing](https://github.com/Rudd-O/homeassistant-ipp-printing).
+[IPP printing](https://github.com/Rudd-O/homeassistant-ipp-printing) as well as
+other integrations that benefit from live image data.
 
 With this integration, you can draw simple images based on a series of commands
 you send to the drawing engine, and receive the rendered data.  The rendered
@@ -38,12 +39,6 @@ response variable whenever you use it) contains a dictionary with:
 * `data`: the image (base64-encoded) in the format you requested
 * `mimetype`: the MIME type of the image
 
-Additionally, an entity named *Last generated image* updates to
-show the contents of what you've drawn.  Very useful when you are
-iterating on a design using the Developer Tools *Actions* tab —
-just keep the entity open on another window and watch the image
-update.
-
 ### Parameters
 
 | Parameter  | Required | Default     | Description |
@@ -78,6 +73,18 @@ of the tool, the only parameters you can use in this action are:
 * width
 * height
 * rotate
+
+You can then use these parameters in your scripts or in the Developer
+Tools *Actions* section directly.
+
+### Seeing previews in real-time
+
+An entity named *Last generated image* updates to show the contents
+of what you've drawn.  Very useful when you are iterating on a design
+using the Developer Tools *Actions* tab — just keep the entity open
+on another window and watch the image update as you run the action.
+
+<img src="examples/Live%20preview.png" width="630" alt="Live preview"/>
 
 ### Examples
 
