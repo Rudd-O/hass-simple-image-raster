@@ -2,7 +2,10 @@
 
 import base64
 import io
+import logging
 
+from homeassistant.components.image import Image
+from homeassistant.const import Platform
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -10,26 +13,36 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-from homeassistant.const import Platform
-
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     DOMAIN,
-    SimpleImageRasterConfigEntry,
+    EMPTY_PNG,
     MY_KEY,
+    SimpleImageRasterConfigEntry,
     SimpleImageRasterData,
     SimpleImageRasterDomainConfig,
 )
 from .imagegen import customimage
 
-PLATFORMS: list[Platform] = []
+PLATFORMS: list[Platform] = [Platform.IMAGE]
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    domain_config = SimpleImageRasterDomainConfig()
+    image_coordinator: DataUpdateCoordinator[Image] = DataUpdateCoordinator(
+        hass,
+        _LOGGER,
+        name=DOMAIN,
+    )
+    image_coordinator.async_set_updated_data(
+        Image(content_type="image/png", content=EMPTY_PNG)
+    )
 
+    domain_config = SimpleImageRasterDomainConfig(image_coordinator=image_coordinator)
     hass.data[MY_KEY] = domain_config
 
     @callback
@@ -59,6 +72,17 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         d.seek(0)
         read = d.read()
         encoded = base64.b64encode(read).decode("ascii")
+
+        # Submit preview to the coordinator.
+        d.seek(0)
+        d.truncate(0)
+        image.save(d, format="PNG")
+        d.flush()
+        d.seek(0)
+        image_coordinator.async_set_updated_data(
+            Image(content_type="image/png", content=d.read())
+        )
+
         return {"image": {"data": encoded, "mimetype": mimetype, "encoding": "base64"}}
 
     # register the services

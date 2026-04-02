@@ -30,6 +30,19 @@ integration usefully.
 
 ## Action: `simpleimageraster.draw`
 
+This action allows you to draw images using simple commands.  When an
+image is drawn, the return value (mandatory — you have to add a
+response variable whenever you use it) contains a dictionary with:
+
+* `data`: the image (base64-encoded) in the format you requested
+* `mimetype`: the MIME type of the image
+
+Additionally, an entity named *Last generated image* updates to
+show the contents of what you've drawn.  Very useful when you are
+iterating on a design using the Developer Tools *Actions* tab —
+just keep the entity open on another window and watch the image
+update.
+
 ### Parameters
 
 | Parameter  | Required | Default     | Description |
