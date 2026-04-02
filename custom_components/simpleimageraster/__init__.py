@@ -1,4 +1,4 @@
-"""The Niimbot BLE integration."""
+"""The simple image raster integration."""
 
 import base64
 import io

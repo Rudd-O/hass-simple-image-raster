@@ -1,5 +1,3 @@
-"""Constants for Niimbot BLE."""
-
 from homeassistant.config_entries import ConfigEntry
 from dataclasses import dataclass
 from homeassistant.util.hass_dict import HassKey
