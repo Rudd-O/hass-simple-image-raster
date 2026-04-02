@@ -1,4 +1,4 @@
-# Grocy label printing
+# Grocy label generation and printing
 
 This example shows how to integrate Grocy label printing with Home Assistant
 (specifically labels for Grocy lots, although it could be extended for other
@@ -51,7 +51,7 @@ All of this takes mere seconds.
 Go to *Devices & services* in the settings of Home Assistant, then click
 *Add integration*.  Select *Internet Printing Protocol* and enter the
 IP address of your CUPS server / printer in the box that appears
-(in our example, it is 192.168.1.45).  In the *Relative path to the
+(in our example, it is 192.168.1.69).  In the *Relative path to the
 printer* box, add the printer path (in CUPS it would be something
 like `/printers/DYMO_LabelWriter_550_Turbo` but in most regular
 printers it tends to be simply the `/ipp/print` default).
