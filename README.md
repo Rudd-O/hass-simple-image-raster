@@ -22,6 +22,11 @@ This is a derivative work based on the [Home Assistant NIIMBOT](https://github.c
 4. Go to **Settings** → **Integrations** and add integration **IPP printer**.
 5. Confirm the dialog onscreen.
 
+## Examples
+
+See the [examples](examples/README.md) folder for examples of how to exploit this
+integration usefully.
+
 ## Action: `simpleimageraster.draw`
 
 ### Parameters
