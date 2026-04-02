@@ -1,11 +1,13 @@
 # Simple image raster for Home Assistant
 
 This repository contains an integration that provides an action for rendering
-bitmap images.  It is useful standalone or in combination with
+bitmap images or PDF documents.  It is useful standalone or in combination with
 [IPP printing](https://github.com/Rudd-O/homeassistant-ipp-printing).
 
 With this integration, you can draw simple images based on a series of commands
-you send to the drawing engine, and receive the rendered data.
+you send to the drawing engine, and receive the rendered data.  The rendered
+data can then be used in your scripts to change images in Home Assistant, or
+even directly print using the IPP printing integration linked above.
 
 This is a derivative work based on the [Home Assistant NIIMBOT](https://github.com/eigger/hass-niimbot) integration.
 
@@ -24,15 +26,30 @@ This is a derivative work based on the [Home Assistant NIIMBOT](https://github.c
 
 ### Parameters
 
-| Parameter  | Required         | Default | Description |
-|------------|------------------|---------|-------------|
-| `payload`  | ✅ | —           | List of drawing commands (see [Payload Element Types](#payload-element-types)) |
-| `rotate`   | ❌ | `0`         | Label rotation: `0`, `90`, `180`, `270` |
-| `width`    | ✅ | —           | Label width in pixels (10-4096)         |
-| `height`   | ✅ | —           | Label height in pixels (10–4096)        |
-| `mimetype` | ✅ | `image/png` | Format of the output image              |
+| Parameter  | Required | Default     | Description |
+|------------|----------|-------------|-------------|
+| `payload`  | ✅       | —           | List of drawing commands (see [Payload Element Types](#payload-element-types)) |
+| `rotate`   | ❌       | `0`         | Label rotation: `0`, `90`, `180`, `270` |
+| `width`    | ✅       | —           | Label width in pixels (10-4096)         |
+| `height`   | ✅       | —           | Label height in pixels (10–4096)        |
+| `mimetype` | ✅       | `image/png` | Format of the output image              |
+| `options`  | ❌       | —           | Key/value options pair (see [Image save options](#image-save-options)) |
 
-### Basic Usage
+### Image save options
+
+Some image formats allow options to be specified.  For example, if drawing to an
+`application/pdf`, you can specify the following option:
+
+```yaml
+dpi: [300, 300] # resolution of the document in dots per inch
+```
+
+resulting in a proportional reduction of paper size in the output PDF data
+(the default if nothing is specified is 72 DPI).
+
+### Examples:
+
+#### Basic usage
 
 ```yaml
 action: simpleimageraster.draw
@@ -48,7 +65,7 @@ data:
   height: 240
 ```
 
-### Example of drawing a barcode and some text
+#### Example of drawing a barcode and some text
 
 ```yaml
 action: simpleimageraster.draw
@@ -89,6 +106,72 @@ data:
   width: 400
   height: 240
 ```
+
+#### Script example for multiline text with auto-fit
+
+```yaml
+alias: Print label with multiple lines of text
+description: >-
+  Use this tool to quick-print any label, for example a recipient label for
+  mailing a letter.  Give the contents of the label, in multiple lines, in the
+  `content` field, for the print to be successful.  The text will resize to fit
+  the width, and the height will fit a maximum of five lines.
+fields:
+  contents:
+    selector:
+      text:
+        multiline: true
+    name: Contents
+    required: true
+    description: >-
+      Contents of the label (e.g. the full address of a letter's recipient) each
+      part in a separate line.
+sequence:
+  - action: simpleimageraster.draw
+    response_variable: result
+    data:
+      payload:
+        - type: new_multiline
+          x: 0
+          y: 20
+          size: 100  # start with a large font size
+          width: 520
+          height: 300
+          fit: true
+          font: rbm.ttf
+          value: "{{ contents }}"
+          # e.g.
+          # value: |-
+          #   Max Mustermann
+          #   Strassenstraße 33
+          #   49418 Mallorca
+          #   Spain
+      width: 584
+      height: 350
+```
+
+In `type: new_multiline`, the font `size` starts by default at 20, and
+the `spacing` between lines defaults to the font size.  You can, of
+course, set your own custom font size and spacing.
+
+If you specify `fit_width: True` or `fit: width` and add the required
+specific `width` in pixels, the font `size` and `spacing` will be
+iteratively reduced until the longest line in the text `value` you
+specified fits the required width.
+
+If you specify `fit_height: True` or `fit: height` and add the required
+specific `height` in pixels, the font `size` and `spacing` will be
+iteratively reduced until the whole text fits vertically in the supplied
+height.
+
+To combine both modes, you can specify `fit: True`.
+
+Of course, if font `size` is left to its default, chances are, only very
+large amounts of text will cause shrinkage of the font size to fit. In that
+case, pass a large font `size` and it will be shrunk to a fitting size.
+
+Note that the top part of letters in italicized text tends to spill outside
+the specified width -- try to make your width slightly narrower in that case.
 
 ### Payload Element Examples
 
@@ -375,8 +458,6 @@ Reads entity history from **Home Assistant Recorder**.
   show_percentage: true
 ```
 
----
-
 ### Payload Element Types
 
 > [!TIP]
@@ -400,74 +481,6 @@ Reads entity history from **Home Assistant Recorder**.
 | **diagram**           | `x`, `y`, `height`  | `width`, `margin`(20), `font`, `bars` | Bar chart. |
 | **plot**              | `data`([{`entity`}]) | `duration`(86400), `x_start`, `y_start`, `x_end`, `y_end`, `size`, `font`, `low`, `high`, `ylegend`, `yaxis`, `debug` | Time-series from Recorder. |
 | **progress_bar**      | `x_start`, `x_end`, `y_start`, `y_end`, `progress` | `direction`(right), `background`, `fill`, `outline`, `width`, `show_percentage` | Progress bar. |
-
----
-
-## Script example for multiline text with auto-fit
-
-```yaml
-alias: Print label with multiple lines of text
-description: >-
-  Use this tool to quick-print any label, for example a recipient label for
-  mailing a letter.  Give the contents of the label, in multiple lines, in the
-  `content` field, for the print to be successful.  The text will resize to fit
-  the width, and the height will fit a maximum of five lines.
-fields:
-  contents:
-    selector:
-      text:
-        multiline: true
-    name: Contents
-    required: true
-    description: >-
-      Contents of the label (e.g. the full address of a letter's recipient) each
-      part in a separate line.
-sequence:
-  - action: simpleimageraster.draw
-    response_variable: result
-    data:
-      payload:
-        - type: new_multiline
-          x: 0
-          y: 20
-          size: 100  # start with a large font size
-          width: 520
-          height: 300
-          fit: true
-          font: rbm.ttf
-          value: "{{ contents }}"
-          # e.g.
-          # value: |-
-          #   Max Mustermann
-          #   Strassenstraße 33
-          #   49418 Mallorca
-          #   Spain
-      width: 584
-      height: 350
-```
-
-In `type: new_multiline`, the font `size` starts by default at 20, and
-the `spacing` between lines defaults to the font size.  You can, of
-course, set your own custom font size and spacing.
-
-If you specify `fit_width: True` or `fit: width` and add the required
-specific `width` in pixels, the font `size` and `spacing` will be
-iteratively reduced until the longest line in the text `value` you
-specified fits the required width.
-
-If you specify `fit_height: True` or `fit: height` and add the required
-specific `height` in pixels, the font `size` and `spacing` will be
-iteratively reduced until the whole text fits vertically in the supplied
-height.
-
-To combine both modes, you can specify `fit: True`.
-
-Of course, if font `size` is left to its default, chances are, only very
-large amounts of text will cause shrinkage of the font size to fit. In that
-case, pass a large font `size` and it will be shrunk to a fitting size.
-
-Note that the top part of letters in italicized text tends to spill outside
-the specified width -- try to make your width slightly narrower in that case.
 
 ## Tools
 

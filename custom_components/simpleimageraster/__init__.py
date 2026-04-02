@@ -36,7 +36,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # callback for the draw custom service
     async def genservice(service: ServiceCall) -> ServiceResponse:
         mimetype = service.data.get("mimetype", "image/png")
-        if mimetype not in ["image/png", "image/jpeg"]:
+        if mimetype not in ["image/png", "image/jpeg", "application/pdf"]:
             raise ServiceValidationError("unknown image format %r" % mimetype)
 
         try:
@@ -44,11 +44,15 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         except Exception as e:
             raise ServiceValidationError("could not draw image: %s" % e) from e
 
+        options = service.data.get("options", {})
+
         d = io.BytesIO()
         if mimetype == "image/png":
-            image.save(d, format="PNG")
+            image.save(d, format="PNG", **options)
         elif mimetype == "image/jpeg":
-            image.save(d, format="JPEG")
+            image.save(d, format="JPEG", **options)
+        elif mimetype == "application/pdf":
+            image.save(d, format="PDF", **options)
         else:
             assert 0, "not reached with %r" % mimetype
         d.flush()

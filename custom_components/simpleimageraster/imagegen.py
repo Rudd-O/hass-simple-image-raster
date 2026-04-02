@@ -13,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFont
 import barcode
 from barcode.writer import ImageWriter
 from pystrich.datamatrix import DataMatrixEncoder
-from homeassistant.components.recorder.history import get_significant_states
 from homeassistant.util import dt
 from datetime import timedelta, datetime
 
@@ -81,7 +80,7 @@ def should_show_element(element):
     return element["visible"] if "visible" in element else True
 
 
-def get_font_file(font_name: str, hass):
+def get_font_file(font_name: str, hass: HomeAssistant | None):
     font_file = os.path.join(os.path.dirname(__file__), "fonts", font_name)
     _LOGGER.debug(
         "Font => font_name: %s first checking for font file in path %s",
@@ -92,22 +91,23 @@ def get_font_file(font_name: str, hass):
         _LOGGER.debug(f"Font => font_name: %s found", font_file)
         return font_file
 
-    www_fonts_dir = hass.config.path("www/fonts")
-    font_file = os.path.join(www_fonts_dir, font_name)
-    _LOGGER.debug(
-        "Font => font_name: %s not found in default package, checking in %s",
-        font_name,
-        font_file,
-    )
-    if os.path.exists(font_file):
-        _LOGGER.debug("Font => font_name: %s found", font_file)
-        return font_file
+    if hass is not None:
+        www_fonts_dir = hass.config.path("www/fonts")
+        font_file = os.path.join(www_fonts_dir, font_name)
+        _LOGGER.debug(
+            "Font => font_name: %s not found in default package, checking in %s",
+            font_name,
+            font_file,
+        )
+        if os.path.exists(font_file):
+            _LOGGER.debug("Font => font_name: %s found", font_file)
+            return font_file
 
     raise FileNotFoundError(font_name)
 
 
 # custom image generator
-def customimage(service: ServiceCall, hass: HomeAssistant) -> Image.Image:
+def customimage(service: ServiceCall, hass: HomeAssistant | None) -> Image.Image:
     payload = service.data.get("payload", [])
     rotate = service.data.get("rotate", 0)
     background = getIndexColor(service.data.get("background", "white"))
@@ -755,6 +755,10 @@ def customimage(service: ServiceCall, hass: HomeAssistant) -> Image.Image:
                     bar_pos = bar_pos + 1
         # plot
         if element["type"] == "plot":
+            if hass is None:
+                raise RuntimeError(
+                    "the `plot` element needs a running Home Assistant instance"
+                )
             check_for_missing_required_arguments(element, ["data"], "plot")
             img_draw = ImageDraw.Draw(img)
             img_draw.fontmode = "1"
@@ -812,6 +816,8 @@ def customimage(service: ServiceCall, hass: HomeAssistant) -> Image.Image:
             min_v = element.get("low", None)
             max_v = element.get("high", None)
             # Obtain all states of all given entities in the given duration
+            from homeassistant.components.recorder.history import get_significant_states
+
             all_states = get_significant_states(
                 hass,
                 start_time=start,

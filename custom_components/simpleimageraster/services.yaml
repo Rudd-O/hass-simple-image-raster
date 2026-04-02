@@ -56,3 +56,12 @@ draw:
           options:
           - image/png
           - image/jpeg
+          - application/pdf
+    options:
+      name: Image format options
+      description: |-
+        A dictionary of `name`: `value` to pass to the `Image.save()` function.
+        See integration documentation for more information.
+      required: false
+      selector:
+        object:
