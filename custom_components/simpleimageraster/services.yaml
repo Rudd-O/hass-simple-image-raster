@@ -45,3 +45,14 @@ draw:
           min: 10
           max: 4096
           step: 1
+    mimetype:
+      name: MIME type
+      description: format to save the image as
+      required: true
+      default: image/png
+      example: image/png
+      selector:
+        select:
+          options:
+          - image/png
+          - image/jpeg

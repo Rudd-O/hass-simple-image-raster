@@ -35,20 +35,27 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     @callback
     # callback for the draw custom service
     async def genservice(service: ServiceCall) -> ServiceResponse:
+        mimetype = service.data.get("mimetype", "image/png")
+        if mimetype not in ["image/png", "image/jpeg"]:
+            raise ServiceValidationError("unknown image format %r" % mimetype)
+
         try:
             image = customimage(service, hass)
         except Exception as e:
             raise ServiceValidationError("could not draw image: %s" % e) from e
 
         d = io.BytesIO()
-        image.save(d, format="PNG")
+        if mimetype == "image/png":
+            image.save(d, format="PNG")
+        elif mimetype == "image/jpeg":
+            image.save(d, format="JPEG")
+        else:
+            assert 0, "not reached with %r" % mimetype
+        d.flush()
         d.seek(0)
         read = d.read()
         encoded = base64.b64encode(read).decode("ascii")
-
-        return {
-            "image": {"data": encoded, "mimetype": "image/png", "encoding": "base64"}
-        }
+        return {"image": {"data": encoded, "mimetype": mimetype, "encoding": "base64"}}
 
     # register the services
     hass.services.async_register(

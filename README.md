@@ -24,12 +24,13 @@ This is a derivative work based on the [Home Assistant NIIMBOT](https://github.c
 
 ### Service Parameters
 
-| Parameter  | Required   | Default | Description |
-|------------|------------|---------|-------------|
-| `payload`  | ✅ | —     | List of drawing commands (see [Payload Element Types](#payload-element-types)) |
-| `rotate`   | ❌ | `0`   | Label rotation: `0`, `90`, `180`, `270` |
-| `width`    | ✅ | —     | Label width in pixels (10-4096)         |
-| `height`   | ✅ | —     | Label height in pixels (10–4096)        |
+| Parameter  | Required         | Default | Description |
+|------------|------------------|---------|-------------|
+| `payload`  | ✅ | —           | List of drawing commands (see [Payload Element Types](#payload-element-types)) |
+| `rotate`   | ❌ | `0`         | Label rotation: `0`, `90`, `180`, `270` |
+| `width`    | ✅ | —           | Label width in pixels (10-4096)         |
+| `height`   | ✅ | —           | Label height in pixels (10–4096)        |
+| `mimetype` | ✅ | `image/png` | Format of the output image              |
 
 ### Basic Usage
 
