@@ -1,10 +1,14 @@
 draw:
   name: Draw
-  description: Generate a picture
+  description: |-
+    Generate a picture.
+    The response variable will contain at least two keys: data holds the base64-encoded data in the format of your choice, and mimetype holds the MIME type of the data (prior to base64 encoding).
   fields:
     payload:
       name: Payload
-      description: List of drawing commands
+      description: |-
+        List of drawing commands.
+        See [the reference](https://github.com/Rudd-O/hass-simple-image-raster?tab=readme-ov-file#payload-element-examples) for information on commands, and [the drawing tool](https://eigger.github.io/Niimbot_Payload_Editor.html) for interactive generation of commands.
       required: true
       example: |
         - type: text
@@ -27,7 +31,7 @@ draw:
           step: 90
     width:
       name: Width
-      description: Width of picture in pixels
+      description: Width of picture in pixels.
       required: true
       example: 400
       selector:
@@ -37,7 +41,7 @@ draw:
           step: 1
     height:
       name: Height
-      description: Height of picture in pixels
+      description: Height of picture in pixels.
       required: true
       example: 240
       selector:
@@ -47,7 +51,7 @@ draw:
           step: 1
     mimetype:
       name: MIME type
-      description: format to save the image as
+      description: Format to save the image as.
       required: true
       default: image/png
       example: image/png
@@ -61,7 +65,7 @@ draw:
       name: Image format options
       description: |-
         A dictionary of `name`: `value` to pass to the `Image.save()` function.
-        See integration documentation for more information.
+        See [integration documentation](https://github.com/Rudd-O/hass-simple-image-raster?tab=readme-ov-file#image-save-options) for more information.
       required: false
       selector:
         object:
