@@ -9,7 +9,10 @@ types of Grocycode).
 It assumes you have your Home Assistant running at IP address 192.168.1.45,
 and you have a DYMO LabelWriter 550 shared somewhere using CUPS,
 at IP address 192.168.1.69, loaded with the large address label format
-(3.5 inches x 1.4 inches).
+(3.5 inches x 1.4 inches) to which we will be printing at 300 DPI
+(hence why the width / height of the canvas used in this example
+is slightly smaller than those dimensions when printed, at 900 x 375
+pixels).
 
 Configuring this printer to be shared on the network is beyond the scope of
 this guide, but:
