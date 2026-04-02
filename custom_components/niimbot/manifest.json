@@ -1,46 +1,17 @@
 {
-  "bluetooth": [
-    {
-      "local_name": "A63-*"
-    },
-    {
-      "local_name": "B1-*"
-    },
-    {
-      "local_name": "B18-*"
-    },
-    {
-      "local_name": "B21-*"
-    },
-    {
-      "local_name": "B3S-*"
-    },
-    {
-      "local_name": "D11-*"
-    },
-    {
-      "local_name": "D110-*"
-    },
-    {
-      "local_name": "T2S-*"
-    }
-  ],
   "codeowners": [
-    "@eigger"
+    "@Rudd-O"
   ],
   "config_flow": true,
-  "dependencies": [
-    "bluetooth_adapters"
-  ],
-  "documentation": "https://www.github.com/eigger/hass-niimbot",
-  "domain": "niimbot",
+  "documentation": "https://www.github.com/Rudd-O/hass-simple-image-raster",
+  "domain": "simpleimageraster",
   "iot_class": "local_polling",
-  "issue_tracker": "https://www.github.com/eigger/hass-niimbot/issues",
-  "name": "Niimbot",
+  "issue_tracker": "https://www.github.com/Rudd-O/hass-simple-image-raster/issues",
+  "name": "Simple image raster",
   "requirements": [
     "qrcode[pil]==7.4.2",
     "python-barcode==0.15.1",
     "pyStrich==0.10"
   ],
-  "version": "1.7.0"
+  "version": "0.0.1"
 }

@@ -2,14 +2,7 @@
 
 import base64
 import io
-import logging
 
-from datetime import timedelta
-from .niimprint import NiimbotDevice, BLEData, PrinterError
-from .imagegen import customimage
-from homeassistant.components import bluetooth
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import (
     HomeAssistant,
     ServiceCall,
@@ -17,196 +10,82 @@ from homeassistant.core import (
     SupportsResponse,
     callback,
 )
-from homeassistant.exceptions import (
-    ConfigEntryNotReady,
-    HomeAssistantError,
-    ServiceValidationError,
-)
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from bleak_retry_connector import close_stale_connections_by_address
-from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.components.image import Image
+from homeassistant.const import Platform
+
+from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.typing import ConfigType
 
 from .const import (
-    CONF_USE_SOUND,
-    CONF_WAIT_BETWEEN_EACH_PRINT_LINE,
-    CONF_CONFIRM_EVERY_NTH_PRINT_LINE,
-    CONF_KEEP_CONNECTION,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_WAIT_BETWEEN_EACH_PRINT_LINE,
-    DEFAULT_CONFIRM_EVERY_NTH_PRINT_LINE,
-    DEFAULT_KEEP_CONNECTION,
     DOMAIN,
-    EMPTY_PNG,
-    ImageAndBLEData,
+    SimpleImageRasterConfigEntry,
+    MY_KEY,
+    SimpleImageRasterData,
+    SimpleImageRasterDomainConfig,
 )
+from .imagegen import customimage
 
-PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.IMAGE, Platform.BINARY_SENSOR]
-
-_LOGGER = logging.getLogger(__name__)
+PLATFORMS: list[Platform] = []
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Niimbot BLE device from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
-    address = entry.unique_id
-    use_sound = entry.options.get(CONF_USE_SOUND, entry.data.get(CONF_USE_SOUND))
-    scan_interval = float(
-        entry.options.get(
-            CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-        )
-    )
-    # Number of seconds (usually sub-second amount) to wait between
-    # data packet sends.  Too little and you risk your BLE proxy
-    # getting congested or failing to write data to your printer.
-    wait_between_each_print_line = int(
-        entry.options.get(
-            CONF_WAIT_BETWEEN_EACH_PRINT_LINE,
-            entry.data.get(
-                CONF_WAIT_BETWEEN_EACH_PRINT_LINE,
-                DEFAULT_WAIT_BETWEEN_EACH_PRINT_LINE,
-            ),
-        )
-    )
-    # The default for most printers is 1 which means every line
-    # written causes a read from the printer, which is very slow
-    # (0.1 ms per line sent).  With this you can tell the code
-    # to fire-and-forget up to N-1 lines sent to the printer
-    # confirmation, and confirm on the Nth line.
-    confirm_every_nth_print_line = int(
-        entry.options.get(
-            CONF_CONFIRM_EVERY_NTH_PRINT_LINE,
-            entry.data.get(
-                CONF_CONFIRM_EVERY_NTH_PRINT_LINE,
-                DEFAULT_CONFIRM_EVERY_NTH_PRINT_LINE,
-            ),
-        )
-    )
-    keep_connection = bool(
-        entry.options.get(
-            CONF_KEEP_CONNECTION,
-            entry.data.get(CONF_KEEP_CONNECTION, DEFAULT_KEEP_CONNECTION),
-        )
-    )
-    assert address is not None
-    await close_stale_connections_by_address(address)
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    domain_config = SimpleImageRasterDomainConfig()
 
-    ble_device = bluetooth.async_ble_device_from_address(hass, address)
-    if not ble_device:
-        _LOGGER.warning(
-            "Could not find Niimbot device with address %s during setup; continuing without initial data",
-            address,
-        )
-
-    niimbot = NiimbotDevice(address, use_sound, keep_connection)
-
-    async def _async_update_method() -> BLEData:
-        """Get data from Niimbot BLE."""
-        ble_device = bluetooth.async_ble_device_from_address(hass, address)
-        if ble_device is None:
-            raise UpdateFailed(f"BLE device not available for address {address}")
-
-        try:
-            data = await niimbot.update_device(ble_device)
-        except Exception as err:
-            raise UpdateFailed(f"Unable to fetch data from {address}: {err}") from err
-
-        return data
-
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=DOMAIN,
-        update_method=_async_update_method,
-        update_interval=timedelta(seconds=scan_interval),
-    )
-    coordinator.data = niimbot.ble_data
-    await coordinator.async_refresh()
-    if not coordinator.last_update_success:
-        _LOGGER.warning(
-            "Initial update failed for %s; entities will start as unavailable: %s",
-            address,
-            coordinator.last_exception,
-        )
-
-    image_coordinator: DataUpdateCoordinator[ImageAndBLEData] = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name=DOMAIN,
-    )
-    image_coordinator.async_set_updated_data(
-        (Image(content_type="image/png", content=EMPTY_PNG), coordinator.data)
-    )
-
-    hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "image_coordinator": image_coordinator,
-        "device": niimbot,
-    }
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    hass.data[MY_KEY] = domain_config
 
     @callback
     # callback for the draw custom service
-    async def printservice(service: ServiceCall) -> ServiceResponse:
+    async def genservice(service: ServiceCall) -> ServiceResponse:
         try:
-            image = await hass.async_add_executor_job(
-                customimage, entry.entry_id, service, hass
-            )
+            image = customimage(service, hass)
         except Exception as e:
-            raise ServiceValidationError("Failed to create image: %s" % e) from e
+            raise ServiceValidationError("could not draw image: %s" % e) from e
 
         d = io.BytesIO()
         image.save(d, format="PNG")
         d.seek(0)
         read = d.read()
-        image_coordinator.async_set_updated_data(
-            (Image(content_type="image/png", content=read), coordinator.data)
-        )
         encoded = base64.b64encode(read).decode("ascii")
-        image_data = f"data:image/png;base64,{encoded}"
 
-        if service.data.get("preview"):
-            return {"image": image_data}
-
-        ble_device = bluetooth.async_ble_device_from_address(hass, address)
-        if ble_device is None:
-            raise HomeAssistantError(
-                f"could not find printer with address {address} through your Bluetooth network"
-            )
-
-        try:
-            result = await niimbot.print_image(
-                ble_device,
-                image,
-                density=int(service.data["density"])
-                if "density" in service.data
-                else 3,
-                wait_between_print_lines=float(service.data["wait_between_print_lines"])
-                if "wait_between_print_lines" in service.data
-                else wait_between_each_print_line / 1000,
-                print_line_batch_size=int(service.data["print_line_batch_size"])
-                if "print_line_batch_size" in service.data
-                else confirm_every_nth_print_line,
-            )
-            result["image"] = image_data
-            return result
-        except (PrinterError, RuntimeError) as e:
-            raise HomeAssistantError("Failed to print: %s" % e) from e
+        return {
+            "image": {"data": encoded, "mimetype": "image/png", "encoding": "base64"}
+        }
 
     # register the services
     hass.services.async_register(
-        DOMAIN, "print", printservice, supports_response=SupportsResponse.OPTIONAL
+        DOMAIN, "draw", genservice, supports_response=SupportsResponse.ONLY
     )
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    niimbot: NiimbotDevice = hass.data[DOMAIN][entry.entry_id]["device"]
-    await niimbot.disconnect()
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: SimpleImageRasterConfigEntry,
+) -> bool:
+    """Set up a config entry."""
 
-    return unload_ok
+    domain_config = hass.data[MY_KEY]
+
+    config_entry.runtime_data = SimpleImageRasterData(
+        domain_config=domain_config,
+    )
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+    return True
+
+
+async def async_unload_entry(
+    hass: HomeAssistant,
+    config_entry: SimpleImageRasterConfigEntry,
+) -> bool:
+    """Unload a config entry."""
+
+    return await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
+
+
+async def async_remove_entry(
+    hass: HomeAssistant,
+    config_entry: SimpleImageRasterConfigEntry,
+) -> None:
+    """Integration removed."""
+    pass

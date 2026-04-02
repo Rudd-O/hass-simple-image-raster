@@ -1,43 +1,12 @@
 {
     "config": {
-        "abort": {
-            "already_configured": "Device is already configured",
-            "already_in_progress": "Configuration flow is already in progress",
-            "cannot_connect": "Failed to connect",
-            "no_devices_found": "No devices found",
-            "unknown": "Unexpected error"
-        },
-        "flow_title": "{name}",
         "step": {
-            "bluetooth_confirm": {
-                "description": "Do you want to set up {name}?"
-            },
             "user": {
-                "data": {
-                    "address": "Device",
-                    "use_sound": "Use Sound",
-                    "scan_interval": "Scan Interval",
-                    "wait_between_each_print_line": "Wait time between print lines",
-                    "confirm_every_nth_print_line": "How often to confirm reception of print lines",
-                    "keep_connection": "Keep BLE Connection"
-                },
-                "description": "Choose a device to set up"
+                "description": "Enabling this integration allows you to draw images with a new action that will be added to your Home Assistant instance.  Proceed?"
             }
-        }
-    },
-    "options": {
-        "flow_title": "{name}",
-        "step": {
-            "init": {
-                "data": {
-                    "use_sound": "Use Sound",
-                    "scan_interval": "Scan Interval",
-                    "wait_between_each_print_line": "Wait time between print lines",
-                    "confirm_every_nth_print_line": "How often to confirm reception of print lines",
-                    "keep_connection": "Keep BLE Connection"
-                },
-                "description": "Change options for your device"
-            }
+        },
+        "abort": {
+            "already_configured": "Integration has already been added"
         }
     }
 }

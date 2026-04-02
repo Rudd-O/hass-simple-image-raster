@@ -1,3 +1,5 @@
+# FIXME
+
 # Grocy Label Printing Integration
 
 This configuration integrates Grocy label printing with Home Assistant (HA).

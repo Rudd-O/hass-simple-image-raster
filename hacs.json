@@ -1,5 +1,5 @@
 {
-  "name": "Niimbot",
+  "name": "Simple image raster",
   "render_readme": true,
-  "homeassistant": "2022.12.1"
+  "homeassistant": "2026.02.0"
 }

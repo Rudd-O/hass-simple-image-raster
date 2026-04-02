@@ -13,10 +13,14 @@ from PIL import Image, ImageDraw, ImageFont
 import barcode
 from barcode.writer import ImageWriter
 from pystrich.datamatrix import DataMatrixEncoder
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.components.recorder.history import get_significant_states
 from homeassistant.util import dt
 from datetime import timedelta, datetime
+
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,7 +42,7 @@ def is_decimal(string):
 # min_max
 def min_max(data):
     if not (data):
-        raise HomeAssistantError("data error, someting is not in range of the recorder")
+        raise ValueError("data error, someting is not in range of the recorder")
     mi, ma = data[0], data[0]
     for d in data[1:]:
         mi = min(mi, d)
@@ -77,24 +81,34 @@ def should_show_element(element):
     return element["visible"] if "visible" in element else True
 
 
-def get_font_file(font_name, hass):
-    font_file = os.path.join(os.path.dirname(__file__), font_name)
+def get_font_file(font_name: str, hass):
+    font_file = os.path.join(os.path.dirname(__file__), "fonts", font_name)
     _LOGGER.debug(
-        f"Font => font_name: {font_name} first checking for default font_file: {font_file}"
+        "Font => font_name: %s first checking for font file in path %s",
+        font_name,
+        font_file,
     )
-    if not font_file:
-        _LOGGER.debug(f"Font => font_name: {font_name} not found in default package")
-        www_fonts_dir = hass.config.path("www/fonts")
-        if os.path.exists(www_fonts_dir):
-            _LOGGER.debug(f"Found {www_fonts_dir} in Home Assistant")
-            font_file = os.path.join(www_fonts_dir, font_name)
-            _LOGGER.debug(f"Font => font_name: {font_name} got font_file: {font_file}")
-    return font_file
+    if os.path.isfile(font_file):
+        _LOGGER.debug(f"Font => font_name: %s found", font_file)
+        return font_file
+
+    www_fonts_dir = hass.config.path("www/fonts")
+    font_file = os.path.join(www_fonts_dir, font_name)
+    _LOGGER.debug(
+        "Font => font_name: %s not found in default package, checking in %s",
+        font_name,
+        font_file,
+    )
+    if os.path.exists(font_file):
+        _LOGGER.debug("Font => font_name: %s found", font_file)
+        return font_file
+
+    raise FileNotFoundError(font_name)
 
 
 # custom image generator
-def customimage(entity_id, service, hass) -> Image.Image:
-    payload = service.data.get("payload", "")
+def customimage(service: ServiceCall, hass: HomeAssistant) -> Image.Image:
+    payload = service.data.get("payload", [])
     rotate = service.data.get("rotate", 0)
     background = getIndexColor(service.data.get("background", "white"))
     canvas_width = service.data.get("width", 400)
@@ -344,7 +358,7 @@ def customimage(entity_id, service, hass) -> Image.Image:
             )
             if isinstance(element["value"], str):
                 if delimiter is None:
-                    raise HomeAssistantError(
+                    raise ValueError(
                         "Missing required argument 'delimiter' in 'multiline'; to avoid needing a delimiter, pass the value as a list of strings"
                     )
                 lst = element["value"].replace("\n", "").split(element["delimiter"])
@@ -400,12 +414,12 @@ def customimage(entity_id, service, hass) -> Image.Image:
                 try:
                     width = float(element["width"])
                 except KeyError as e:
-                    raise HomeAssistantError(
+                    raise ValueError(
                         f"Missing required argument {e} in 'new_multiline';"
                         " it is mandatory when text is fit to width"
                     )
                 except ValueError as e:
-                    raise HomeAssistantError(f"Invalid width value {e}")
+                    raise ValueError(f"Invalid width value {e}")
                 rendered_width, _ = bbox(font, spacing)
                 if rendered_width > width:
                     _LOGGER.debug(
@@ -421,12 +435,12 @@ def customimage(entity_id, service, hass) -> Image.Image:
                 try:
                     height = float(element["height"])
                 except KeyError as e:
-                    raise HomeAssistantError(
+                    raise ValueError(
                         f"Missing required argument {e} in 'new_multiline';"
                         " it is mandatory when text is fit to height"
                     )
                 except ValueError as e:
-                    raise HomeAssistantError(f"Invalid height value {e}")
+                    raise ValueError(f"Invalid height value {e}")
                 _, rendered_height = bbox(font, spacing)
                 if rendered_height > height:
                     _LOGGER.debug(
@@ -481,7 +495,7 @@ def customimage(entity_id, service, hass) -> Image.Image:
                         chr_hex = icon["codepoint"]
                         break
             if chr_hex == "":
-                raise HomeAssistantError("Non valid icon used: " + value)
+                raise ValueError("Non valid icon used: " + value)
             stroke_width = element.get("stroke_width", 0)
             stroke_fill = element.get("stroke_fill", "white")
             font = ImageFont.truetype(font_file, element["size"])
@@ -518,11 +532,11 @@ def customimage(entity_id, service, hass) -> Image.Image:
                 response = requests.get(url)
                 imgdl = Image.open(io.BytesIO(response.content))
             elif url.startswith(os.path.sep) or url.startswith("file://"):
-                raise HomeAssistantError("local file paths are not permitted")
+                raise ValueError("local file paths are not permitted")
             elif "data:" in url:
                 s = url[5:]
                 if not s or "," not in s:
-                    raise HomeAssistantError("invalid data url")
+                    raise ValueError("invalid data url")
                 media_type, _, raw_data = s.partition(",")
                 is_base64_encoded = media_type.endswith(";base64")
                 if is_base64_encoded:
@@ -533,7 +547,7 @@ def customimage(entity_id, service, hass) -> Image.Image:
                     try:
                         data = base64.b64decode(raw_data)
                     except ValueError as exc:
-                        raise HomeAssistantError("invalid base64 in data url") from exc
+                        raise ValueError("invalid base64 in data url") from exc
                 else:
                     # Note: unquote_to_bytes() does not raise exceptions for invalid
                     # or partial escapes, so there is no error handling here.
@@ -558,7 +572,7 @@ def customimage(entity_id, service, hass) -> Image.Image:
             data = str(element["data"])
             pos_x = element["x"]
             pos_y = element["y"]
-            eclevel = element["eclevel"]  if "eclevel" in element else "h"
+            eclevel = element["eclevel"] if "eclevel" in element else "h"
             color = element["color"] if "color" in element else "black"
             bgcolor = element["bgcolor"] if "bgcolor" in element else "white"
             border = element["border"] if "border" in element else 1
@@ -811,9 +825,7 @@ def customimage(entity_id, service, hass) -> Image.Image:
             raw_data = []
             for plot in element["data"]:
                 if not (plot["entity"] in all_states):
-                    raise HomeAssistantError(
-                        "no recorded data found for " + plot["entity"]
-                    )
+                    raise ValueError("no recorded data found for " + plot["entity"])
                 states = all_states[plot["entity"]]
                 state_obj = states[0]
                 states[0] = {
@@ -1084,7 +1096,7 @@ def check_for_missing_required_arguments(element, required_keys, func_name):
         if key not in element:
             missing_keys.append(key)
     if missing_keys:
-        raise HomeAssistantError(
+        raise ValueError(
             f"Missing required argument(s) '{', '.join(missing_keys)}' in '{func_name}'"
         )
 
