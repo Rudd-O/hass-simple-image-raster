@@ -9,7 +9,8 @@ you send to the drawing engine, and receive the rendered data.  The rendered
 data can then be used in your scripts to change images in Home Assistant, or
 even directly print using the IPP printing integration linked above.
 
-This is a derivative work based on the [Home Assistant NIIMBOT](https://github.com/eigger/hass-niimbot) integration.
+This is a derivative work based on the [Home Assistant NIIMBOT](https://github.com/eigger/hass-niimbot)
+integration.
 
 ## Installation
 
@@ -40,7 +41,7 @@ integration usefully.
 | `mimetype` | ✅       | `image/png` | Format of the output image              |
 | `options`  | ❌       | —           | Key/value options pair (see [Image save options](#image-save-options)) |
 
-### Image save options
+#### Image save options
 
 Some image formats allow options to be specified.  For example, if drawing to an
 `application/pdf`, you can specify the following option:
@@ -52,7 +53,19 @@ dpi: [300, 300] # resolution of the document in dots per inch
 resulting in a proportional reduction of paper size in the output PDF data
 (the default if nothing is specified is 72 DPI).
 
-### Examples:
+### Drawing graphically
+
+The author is kind enough to provide a [Web-based tool to
+generate payloads](https://eigger.github.io/Niimbot_Payload_Editor.html)
+for the draw action provided by this integration.  From the YAML output
+of the tool, the only parameters you can use in this action are:
+
+* payload
+* width
+* height
+* rotate
+
+### Examples
 
 #### Basic usage
 
