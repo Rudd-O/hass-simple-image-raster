@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult
 
@@ -29,7 +30,7 @@ class SimpleImageRasterConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self,
-        user_input: dict | None = None,
+        user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         # pylint: disable=unused-argument
         """Handle a flow initialized by the user."""
