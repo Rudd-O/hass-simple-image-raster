@@ -474,10 +474,10 @@ def customimage(service: ServiceCall, hass: HomeAssistant) -> Image.Image:
             d.fontmode = "1"
             # ttf from https://github.com/Templarian/MaterialDesign-Webfont/blob/master/fonts/materialdesignicons-webfont.ttf
             font_file = os.path.join(
-                os.path.dirname(__file__), "materialdesignicons-webfont.ttf"
+                os.path.dirname(__file__), "fonts/materialdesignicons-webfont.ttf"
             )
             meta_file = os.path.join(
-                os.path.dirname(__file__), "materialdesignicons-webfont_meta.json"
+                os.path.dirname(__file__), "fonts/materialdesignicons-webfont_meta.json"
             )
             f = open(meta_file)
             data = json.load(f)
