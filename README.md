@@ -20,9 +20,9 @@ This is a derivative work based on the [Home Assistant NIIMBOT](https://github.c
 4. Go to **Settings** → **Integrations** and add integration **IPP printer**.
 5. Confirm the dialog onscreen.
 
-## Service: `simpleimageraster.draw`
+## Action: `simpleimageraster.draw`
 
-### Service Parameters
+### Parameters
 
 | Parameter  | Required         | Default | Description |
 |------------|------------------|---------|-------------|
@@ -48,7 +48,7 @@ data:
   height: 240
 ```
 
-### Example for B1
+### Example of drawing a barcode and some text
 
 ```yaml
 action: simpleimageraster.draw
@@ -71,7 +71,7 @@ data:
       y: 120
       size: 120
     - type: dlimg
-      url: "https://example.com/image.png"
+      url: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAMAAAAM7l6QAAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+oEAgssE5VYOZ4AAABRSURBVCjPrZHBCgAgDELd//90h4IMJMe2TnMPUgvxPQgAJFlsTatHDGDj7ZLnMF97Z4hQNM9g490sVsU6FH2JqjSDjXehmH3zo2SoHjbe6WILMVoC3bdBtPUAAAAASUVORK5CYII=
       x: 10
       y: 10
       xsize: 120
