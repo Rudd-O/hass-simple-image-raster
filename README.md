@@ -500,6 +500,13 @@ Reads entity history from **Home Assistant Recorder**.
 | **plot**              | `data`([{`entity`}]) | `duration`(86400), `x_start`, `y_start`, `x_end`, `y_end`, `size`, `font`, `low`, `high`, `ylegend`, `yaxis`, `debug` | Time-series from Recorder. |
 | **progress_bar**      | `x_start`, `x_end`, `y_start`, `y_end`, `progress` | `direction`(right), `background`, `fill`, `outline`, `width`, `show_percentage` | Progress bar. |
 
+Note that dimensional units are all given in pixels.  When rendering to PNG or JPEG,
+there is no inherent resolution, but when rendering to PDF, the default resolution
+will be 72 DPI — leading to a blocky / low-res look if printed.  Use the `options`
+feature to change the DPI when rendering to PDF, and use a larger canvas (width / height)
+as well as larger dimensions in your elements, to accomodate for the fact that
+a higher-resolution PDF will naturally result in smaller printed elements.
+
 ## Tools
 
 ### [Niimbot Payload Layout Editor](https://eigger.github.io/Niimbot_Payload_Editor.html)
