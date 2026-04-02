@@ -28,7 +28,6 @@ sequence:
           value: "{{ contents }}"
       width: 900
       height: 375
-      preview: "{{ preview|default(False) }}"
       mimetype: application/pdf
       options:
         dpi:
@@ -50,13 +49,6 @@ fields:
     description: >-
       Contents of the label (e.g. the full address of a letter's recipient) each
       part in a separate line.
-  preview:
-    selector:
-      boolean: {}
-    name: Preview
-    description: "If true, doesn't print a label. "
-    default: false
-    required: false
 alias: Print label with multiple lines of text
 description: >-
   Use this tool to quick-print any label, for example a recipient label for
