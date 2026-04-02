@@ -6,8 +6,9 @@ bitmap images or PDF documents.  It is useful standalone or in combination with
 
 With this integration, you can draw simple images based on a series of commands
 you send to the drawing engine, and receive the rendered data.  The rendered
-data can then be used in your scripts to change images in Home Assistant, or
-even directly print using the IPP printing integration linked above.
+data can then be used in your scripts to change images in Home Assistant, send
+updates to ePaper displays, or even directly print using the IPP printing integration
+linked above.
 
 This is a derivative work based on the [Home Assistant NIIMBOT](https://github.com/eigger/hass-niimbot)
 integration.
