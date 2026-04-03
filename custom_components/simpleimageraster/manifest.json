@@ -1,14 +1,15 @@
 {
+  "domain": "simpleimageraster",
+  "name": "Simple image raster",
   "codeowners": [
     "@Rudd-O"
   ],
   "config_flow": true,
   "dependencies": ["recorder"],
   "documentation": "https://www.github.com/Rudd-O/hass-simple-image-raster",
-  "domain": "simpleimageraster",
   "iot_class": "local_polling",
   "issue_tracker": "https://www.github.com/Rudd-O/hass-simple-image-raster/issues",
-  "name": "Simple image raster",
+  "quality_scale": "bronze",
   "requirements": [
     "qrcode[pil]==7.4.2",
     "python-barcode==0.15.1",
