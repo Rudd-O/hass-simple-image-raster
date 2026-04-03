@@ -3,6 +3,7 @@
     "@Rudd-O"
   ],
   "config_flow": true,
+  "dependencies": ["recorder"],
   "documentation": "https://www.github.com/Rudd-O/hass-simple-image-raster",
   "domain": "simpleimageraster",
   "iot_class": "local_polling",
