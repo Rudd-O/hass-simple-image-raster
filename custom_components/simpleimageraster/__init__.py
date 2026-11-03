@@ -2,6 +2,7 @@
 
 import base64
 import io
+from pathlib import Path
 import logging
 
 from homeassistant.components.image import Image
