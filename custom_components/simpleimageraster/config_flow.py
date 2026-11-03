@@ -32,15 +32,10 @@ class SimpleImageRasterConfigFlow(ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        # pylint: disable=unused-argument
-        """Handle a flow initialized by the user."""
-
         if self._async_current_entries():
-            _LOGGER.debug("An existing ipp_printing config entry already exists")
             return self.async_abort(reason="already_configured")
-
-        if user_input is not None:
-            return self.async_create_entry(title=INTEGRATION_NAME, data={}, options={})
-
-        self._set_confirm_only()
-        return self.async_show_form(step_id="user")
+    
+        return self.async_create_entry(
+            title="Simple image raster",
+            data={},
+        )    
