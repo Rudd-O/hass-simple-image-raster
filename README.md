@@ -103,6 +103,33 @@ data:
   width: 400
   height: 240
 ```
+#### Basic usage of file creation 
+
+```yaml
+action: simpleimageraster.draw
+data:
+  mimetype: image/jpeg
+  filename: image.jpeg
+  payload:
+    - type: text
+      value: Hello World!
+      font: ppb.ttf
+      x: 100
+      y: 100
+      size: 40
+  width: 400
+  height: 240
+```
+
+This will create file located at `/mdeia/image.jpg`. And the response values will be;
+
+```yaml
+image:
+  data: "...<<base64>>..."
+  mimetype: image/jpeg
+  encoding: base64
+  path: /media/esp_presentation.jpeg
+```
 
 #### Example of drawing a barcode and some text
 
